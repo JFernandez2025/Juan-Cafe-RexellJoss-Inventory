@@ -1,0 +1,1478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>JUAN CAFÉ INVENTORY SYSTEM</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<style>
+
+:root{
+--bg:#f5efe8;
+--brown:#8b4f32;
+--brown2:#6d3d26;
+--green:#22c55e;
+--red:#ef4444;
+--blue:#2563eb;
+--white:#ffffff;
+--shadow:0 10px 25px rgba(0,0,0,.08);
+}
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial;
+}
+
+body{
+background:var(--bg);
+overflow:hidden;
+}
+
+.app{
+display:grid;
+height:100vh;
+}
+
+.left{
+padding:15px;
+overflow:auto;
+}
+
+.right{
+background:#fff;
+display:none;
+overflow:auto;
+}
+
+.brand{
+text-align:center;
+margin-bottom:10px;
+}
+
+.logo{
+max-width:250px;
+}
+
+.dashboard{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:10px;
+margin-bottom:12px;
+}
+
+.card{
+background:#fff;
+padding:14px;
+border-radius:14px;
+box-shadow:var(--shadow);
+text-align:center;
+}
+
+.card h4{
+font-size:14px;
+margin-bottom:8px;
+color:#666;
+}
+
+.card p{
+font-size:22px;
+font-weight:bold;
+color:var(--brown);
+}
+
+.chart-box{
+background:#fff;
+padding:15px;
+border-radius:14px;
+box-shadow:var(--shadow);
+margin-bottom:12px;
+}
+
+.toolbar{
+display:flex;
+gap:10px;
+margin-bottom:12px;
+flex-wrap:wrap;
+}
+
+.toolbar input,
+.toolbar select{
+padding:10px;
+border:none;
+border-radius:10px;
+background:#fff;
+box-shadow:var(--shadow);
+}
+
+.btn{
+padding:10px 15px;
+border:none;
+border-radius:10px;
+cursor:pointer;
+color:#fff;
+font-weight:bold;
+}
+
+.export-btn{background:var(--brown);}
+.print-btn{background:var(--blue);}
+.reset-btn{background:var(--red);}
+
+table{
+width:100%;
+border-collapse:collapse;
+background:#fff;
+border-radius:14px;
+overflow:hidden;
+box-shadow:var(--shadow);
+}
+
+th{
+background:var(--brown);
+color:#fff;
+padding:12px;
+font-size:13px;
+}
+
+td{
+padding:10px;
+border-bottom:1px solid #eee;
+font-size:13px;
+text-align:center;
+}
+
+td img{
+width:55px;
+height:55px;
+object-fit:cover;
+border-radius:10px;
+}
+
+.low{
+color:var(--red);
+font-weight:bold;
+}
+
+.good{
+color:var(--green);
+font-weight:bold;
+}
+
+.action-btn{
+padding:6px 10px;
+border:none;
+border-radius:6px;
+color:#fff;
+cursor:pointer;
+font-size:12px;
+}
+
+.edit{
+background:var(--blue);
+}
+
+.sidebar{
+padding:20px;
+}
+
+.sidebar h2{
+margin-bottom:15px;
+color:var(--brown);
+}
+
+.sidebar p{
+margin-bottom:10px;
+font-size:15px;
+line-height:1.6;
+}
+
+.modal{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+display:none;
+justify-content:center;
+align-items:center;
+background:rgba(0,0,0,.5);
+z-index:999;
+}
+
+.modal-content{
+background:#fff;
+padding:20px;
+border-radius:16px;
+width:320px;
+animation:pop .2s ease;
+}
+
+@keyframes pop{
+from{
+transform:scale(.8);
+opacity:0;
+}
+to{
+transform:scale(1);
+opacity:1;
+}
+}
+
+.modal-content h3{
+margin-bottom:15px;
+color:var(--brown);
+}
+
+.modal-content input{
+width:100%;
+padding:10px;
+margin-bottom:10px;
+border:none;
+border-radius:10px;
+background:#f3f3f3;
+}
+
+.save-btn{
+width:100%;
+background:var(--green);
+}
+
+.close-btn{
+width:100%;
+background:var(--red);
+margin-top:8px;
+}
+
+@media(max-width:900px){
+
+.app{
+grid-template-columns:1fr;
+}
+
+.right{
+display:none;
+}
+
+.dashboard{
+grid-template-columns:repeat(2,1fr);
+}
+
+}
+
+
+
+
+/* ===================================
+IPHONE SMALL SCREEN RESPONSIVE
+=================================== */
+
+@media screen and (max-width: 480px){
+
+body{
+overflow:auto;
+}
+
+/* MAIN LAYOUT */
+.app{
+display:block;
+height:auto;
+}
+
+.left{
+padding:10px;
+}
+
+/* LOGO */
+.logo{
+max-width:180px;
+width:100%;
+height:auto;
+}
+
+/* DASHBOARD CARDS */
+.dashboard{
+grid-template-columns:1fr 1fr;
+gap:8px;
+}
+
+.card{
+padding:10px;
+border-radius:12px;
+}
+
+.card h4{
+font-size:11px;
+}
+
+.card p{
+font-size:18px;
+}
+
+/* CHART */
+.chart-box{
+padding:10px;
+overflow-x:auto;
+}
+
+#chart{
+min-width:320px;
+}
+
+/* TOOLBAR */
+.toolbar{
+flex-direction:column;
+gap:8px;
+}
+
+.toolbar input,
+.toolbar select,
+.btn{
+width:100%;
+font-size:14px;
+}
+
+/* TABLE RESPONSIVE */
+table{
+display:block;
+width:100%;
+overflow-x:auto;
+white-space:nowrap;
+border-radius:12px;
+}
+
+thead,
+tbody,
+tr{
+white-space:nowrap;
+}
+
+th,
+td{
+padding:8px;
+font-size:11px;
+}
+
+td img{
+width:42px;
+height:42px;
+border-radius:8px;
+}
+
+/* BUTTONS */
+.action-btn{
+font-size:11px;
+padding:5px 8px;
+}
+
+/* MODAL */
+.modal-content{
+width:95%;
+max-width:320px;
+padding:15px;
+}
+
+.modal-content h3{
+font-size:18px;
+}
+
+.modal-content input{
+font-size:14px;
+}
+
+/* SCROLLBAR */
+table::-webkit-scrollbar{
+height:6px;
+}
+
+table::-webkit-scrollbar-thumb{
+background:var(--brown);
+border-radius:10px;
+}
+
+}
+
+/* EXTRA SMALL DEVICES (iPhone SE) */
+@media screen and (max-width: 375px){
+
+.dashboard{
+grid-template-columns:1fr;
+}
+
+.card p{
+font-size:16px;
+}
+
+th,
+td{
+font-size:10px;
+padding:6px;
+}
+
+td img{
+width:36px;
+height:36px;
+}
+
+.btn{
+padding:9px;
+font-size:12px;
+}
+
+.logo{
+max-width:150px;
+}
+
+}
+
+
+
+
+/* =========================
+PRINT ONLY TABLE + DASHBOARD
+========================= */
+
+@media print{
+
+body{
+background:#fff;
+overflow:visible;
+}
+
+/* HIDE IMAGE COLUMN */
+th:first-child,
+td:first-child{
+display:none !important;
+}
+/* HIDE UNWANTED ELEMENTS */
+.toolbar,
+.chart-box,
+.right,
+.modal,
+.action-btn,
+th:last-child,
+td:last-child{
+display:none !important;
+}
+
+/* SHOW FULL PAGE */
+.app{
+display:block;
+height:auto;
+}
+
+.left{
+padding:0;
+width:100%;
+}
+
+/* LOGO */
+.logo{
+max-width:220px;
+margin-bottom:10px;
+}
+
+/* DASHBOARD */
+.dashboard{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:10px;
+margin-bottom:20px;
+}
+
+.card{
+box-shadow:none;
+border:1px solid #ccc;
+}
+
+/* TABLE */
+table{
+width:100%;
+border-collapse:collapse;
+box-shadow:none;
+}
+
+th{
+background:#8b4f32 !important;
+color:#fff !important;
+font-size:12px;
+padding:10px;
+}
+
+td{
+font-size:11px;
+padding:8px;
+border:1px solid #ddd;
+}
+
+td img{
+width:45px;
+height:45px;
+object-fit:cover;
+}
+
+/* REMOVE ROUNDED CORNERS */
+table,
+.card{
+border-radius:0;
+}
+
+/* PRINT COLORS */
+*{
+-webkit-print-color-adjust:exact;
+print-color-adjust:exact;
+}
+
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="app">
+
+<div class="left">
+
+<div class="brand">
+<img class="logo" src="https://juancafe.ph/wp-content/uploads/2025/02/Juan-cafe-drinks-9-e1739197611481-600x194.png">
+</div>
+
+<div class="dashboard">
+
+<div class="card">
+<h4>Total Products</h4>
+<p id="totalProducts">0</p>
+</div>
+
+<div class="card">
+<h4>Total Units</h4>
+<p id="totalUnits">0</p>
+</div>
+
+<div class="card">
+<h4>Low Stocks</h4>
+<p id="lowStocks">0</p>
+</div>
+
+<div class="card">
+<h4>Inventory Value</h4>
+<p id="inventoryValue">₱0</p>
+</div>
+
+</div>
+
+<div class="chart-box">
+<canvas id="chart" height="100"></canvas>
+</div>
+
+<div class="toolbar">
+
+<input type="text" id="search" placeholder="Search product...">
+
+<select id="filter">
+<option value="All">All Categories</option>
+</select>
+<button class="btn export-btn" onclick="exportExcel()">Export Excel</button>
+<button class="btn export-btn" onclick="exportJSON()">Export JSON</button>
+
+<button class="btn print-btn" onclick="window.print()">Print</button>
+
+<button class="btn reset-btn" onclick="resetInventory()">Reset</button>
+
+</div>
+
+<table>
+
+<thead>
+<tr>
+<th>Image</th>
+<th>Name</th>
+<th>Category</th>
+<th>Size</th>
+<th>Price</th>
+<th>Stocks</th>
+<th>Status</th>
+<th>Actions</th>
+</tr>
+</thead>
+
+<tbody id="table"></tbody>
+
+</table>
+
+</div>
+
+
+</div>
+
+<!-- MODAL -->
+
+<div class="modal" id="modal">
+
+<div class="modal-content">
+
+<h3>Edit Product</h3>
+<label>Name</label>
+<input id="e_name" disabled>
+
+<label>Catergory</label>
+<input id="e_category" disabled>
+
+<label>Size</label>
+<input id="e_size" disabled>
+
+<label>Price</label>
+<input id="e_price" disabled>
+
+<label>Stocks</label>
+<input id="e_stocks" type="number" placeholder="Stocks">
+
+<button class="btn save-btn" onclick="saveEdit()">Save Changes</button>
+
+<button class="btn close-btn" onclick="closeModal()">Close</button>
+
+</div>
+
+</div>
+
+<script>
+
+/* =========================
+PRODUCT LIST
+========================= */
+
+const products = [
+
+/* =========================
+Powder
+========================= */
+
+{
+name:"Black Forest",
+category:"Powder",
+image:"https://juancafe.ph/wp-content/uploads/2023/09/Black-Forest-Milk-Tea-1-768x768.png",
+sizes:{ "packs":306 }
+},
+
+{
+name:"Buko Pandan",
+category:"Powder",
+image:"https://juancafe.ph/wp-content/uploads/2023/09/Buko-Pandan-Milk-Tea-1-768x768.png",
+sizes:{ "packs":265 }
+},
+{
+name:"Cafe Mocha",
+category:"Powder",
+image:"https://juancafe.ph/wp-content/uploads/2025/02/Juan-cafe-drinks-8.png",
+sizes:{ "ml":380 }
+},
+{
+name:"Choco Mousse",
+category:"Powder",
+image:"https://juancafe.ph/wp-content/uploads/2023/09/Choco-Mousse-Milk-Tea-1-768x768.png",
+sizes:{ "packs":302 }
+},
+
+{
+name:"Cookies & Cream",
+category:"Powder",
+image:"https://juancafe.ph/wp-content/uploads/2023/09/Cookies-Cream-Milk-Tea-768x768.png",
+sizes:{ "packs":290 }
+},
+
+{
+name:"Dark Chocolate",
+category:"Powder",
+image:"https://juancafe.ph/wp-content/uploads/2023/09/Dark-Chocolate-Milktea-768x768.png",
+sizes:{ "packs":321 }
+},
+
+{
+name:"Double Dutch",
+category:"Powder",
+image:"https://juancafe.ph/wp-content/uploads/2023/09/Double-Dutch-Frappe-1-768x768.png",
+sizes:{ "ml":346 }
+},
+
+{
+name:"Java Chip",
+category:"Powder",
+image:"https://juancafe.ph/wp-content/uploads/2023/09/Java-Chip-Frappe-1-768x768.png",
+sizes:{ "ml":314 }
+},
+{
+name:"Mango",
+category:"Powder",
+image:"https://juancafe.ph/wp-content/uploads/2023/09/Mango-Milk-Tea-1-768x768.png",
+sizes:{ "packs":284 }
+},
+
+{
+name:"Matcha",
+category:"Powder",
+image:"https://juancafe.ph/wp-content/uploads/2023/09/Matcha-Milk-Tea-1-768x768.png",
+sizes:{ "packs":273 }
+},
+
+{
+name:"Okinawa",
+category:"Powder",
+image:"https://juancafe.ph/wp-content/uploads/2023/09/Winter-Melon-Milk-Tea-1-768x768.png",
+sizes:{ "packs":222 }
+},
+
+{
+name:"Red Velvet",
+category:"Powder",
+image:"https://juancafe.ph/wp-content/uploads/2023/09/Red-Velvet-Milk-Tea-1-768x768.png",
+sizes:{ "packs":291 }
+},
+
+{
+name:"Rocky Road",
+category:"Powder",
+image:"https://juancafe.ph/wp-content/uploads/2023/09/Rocky-Road-Milk-Tea-1-768x768.png",
+sizes:{ "packs":305 }
+},
+
+{
+name:"Salted Caramel",
+category:"Powder",
+image:"https://juancafe.ph/wp-content/uploads/2023/09/Salted-Caramel-Milk-Tea-1-768x768.png",
+sizes:{ "packs":230 }
+},
+
+{
+name:"Strawberry",
+category:"Powder",
+image:"https://juancafe.ph/wp-content/uploads/2023/09/Strawberry-Milk-TeaFRUITY-SODA-768x768.png",
+sizes:{ "packs":258 }
+},
+
+{
+name:"Taro",
+category:"Powder",
+image:"https://juancafe.ph/wp-content/uploads/2023/09/Taro-Milk-Tea-1-768x768.png",
+sizes:{ "packs":285 }
+},
+
+{
+name:"Wintermelon",
+category:"Powder",
+image:"https://juancafe.ph/wp-content/uploads/2023/09/Winter-Melon-Milk-Tea-1-768x768.png",
+sizes:{ "packs":222 }
+},
+
+/* =========================
+SYRUP
+========================= */
+
+{
+name:"Blueberry",
+category:"Syrup",
+image:"https://juancafe.ph/wp-content/uploads/2023/09/Blueberry-Fruit-Tea-2-768x768.png",
+sizes:{ "ml":255 }
+},
+{
+name:"Brown Sugar",
+category:"Syrup",
+image:"https://images.unsplash.com/photo-1604908176997-125f25cc5c4a",
+sizes:{ "bottles":340 }
+},
+
+{
+name:"Caramel",
+category:"Syrup",
+image:"https://juancafe.ph/wp-content/uploads/2023/09/Iced-Coffee-Caramel-Macchiato-768x768.png",
+sizes:{
+"ml":340
+}
+},
+
+{
+name:"Green Apple",
+category:"Syrup",
+image:"https://juancafe.ph/wp-content/uploads/2023/09/Green-Apple-Fruit-Tea-1-768x768.png",
+sizes:{ "ml":255 }
+},
+
+{
+name:"Hazelnut",
+category:"Syrup",
+image:"https://juancafe.ph/wp-content/uploads/2023/09/Iced-Coffee-Hazelnut-768x768.png",
+sizes:{
+"ml":340
+}
+},
+
+{
+name:"Lychee",
+category:"Syrup",
+image:"https://juancafe.ph/wp-content/uploads/2023/09/Lychee-Fruit-Tea-1-768x768.png",
+sizes:{ "ml":255 }
+},
+
+{
+name:"Mocha",
+category:"Syrup",
+image:"https://juancafe.ph/wp-content/uploads/2023/09/Iced-Coffee-Mocha-1-768x768.png",
+sizes:{
+"ml":410
+}
+},
+
+{
+name:"Passion Fruit",
+category:"Syrup",
+image:"https://juancafe.ph/wp-content/uploads/2023/09/Passion-Fruit-Tea-768x768.png",
+sizes:{ "ml":255 }
+},
+
+{
+name:"Salted Caramel",
+category:"Syrup",
+image:"https://juancafe.ph/wp-content/uploads/2023/09/Salted-Caramel-Milk-Tea-1-768x768.png",
+sizes:{ "packs":340 }
+},
+
+{
+name:"Strawberry",
+category:"Syrup",
+image:"https://juancafe.ph/wp-content/uploads/2023/09/Strawberry-Fruit-Tea-1-768x768.png",
+sizes:{ "ml":255 }
+},
+
+{
+name:"Vanilla",
+category:"Syrup",
+image:"https://juancafe.ph/wp-content/uploads/2023/09/Iced-Coffee-Vanilla-768x768.png",
+sizes:{
+"ml":340
+}
+},
+
+
+/* =========================
+ADDONS
+========================= */
+{
+name:"Whipped Cream",
+category:"Add-ons",
+image:"https://images.unsplash.com/photo-1583130879758-db8ac95a9b68?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTF8fHdoaXBwZWQlMjBjcmVhbXxlbnwwfHwwfHx8MA%3D%3D",
+sizes:{ "packs":460 }
+},
+
+{
+name:"Pearl",
+category:"Add-ons",
+image:"https://images.pexels.com/photos/605627/pexels-photo-605627.jpeg",
+sizes:{ "packs":112 }
+},
+
+{
+name:"Coffee Jelly",
+category:"Add-ons",
+image:"https://images.pexels.com/photos/26510353/pexels-photo-26510353.jpeg",
+sizes:{ "packs":200 }
+},
+
+{
+name:"Crystal",
+category:"Add-ons",
+image:"https://images.pexels.com/photos/26596264/pexels-photo-26596264.jpeg",
+sizes:{ "packs":140 }
+},
+
+{
+name:"Cream Cheese",
+category:"Add-ons",
+image:"https://images.pexels.com/photos/7965969/pexels-photo-7965969.jpeg",
+sizes:{ "packs":280 }
+},
+
+{
+name:"Espresso",
+category:"Add-ons",
+image:"https://images.pexels.com/photos/30349793/pexels-photo-30349793.jpeg",
+sizes:{ "packs":465 }
+},
+
+{
+name:"Crushed Oreo",
+category:"Add-ons",
+image:"https://images.pexels.com/photos/14283899/pexels-photo-14283899.jpeg",
+sizes:{ "packs":205 }
+},
+
+/* =========================
+INGREDIENTS
+(Used for making drinks)
+========================= */
+
+{
+name:"Coffee Creamer",
+category:"Creamers/Dairy",
+image:"https://images.unsplash.com/photo-1604908554027-6a7f8c3a7b7f",
+sizes:{ "packs":235 }
+},
+
+{
+name:"Frappe Base",
+category:"Creamers/Dairy",
+image:"https://images.unsplash.com/photo-1615484477778-ca3b77940c25",
+sizes:{ "packs":260 }
+},
+
+{
+name:"Milk Tea Creamer",
+category:"Creamers/Dairy",
+image:"https://images.unsplash.com/photo-1585238342028-4f4c0f1a0b5e",
+sizes:{ "packs":160 }
+},
+
+{
+name:"Jersey Full Cream Milk",
+category:"Creamers/Dairy",
+image:"https://images.unsplash.com/photo-1563636619-e9143da7973b",
+sizes:{ "packs":90 }
+},
+
+
+/* =========================
+SYRUPS / FLAVORINGS
+(For drinks flavoring / toppings)
+========================= */
+
+{
+name:"Fructose",
+category:"Sweetener",
+image:"https://images.unsplash.com/photo-1604908176997-125f25cc5c4a",
+sizes:{ "taro":1750 }
+},
+
+{
+name:"Condensed",
+category:"Sweetener",
+image:"https://images.unsplash.com/photo-1604908176997-125f25cc5c4a",
+sizes:{ "can":0 }
+},
+
+{
+name:"Sprite",
+category:"Sweetener",
+image:"https://images.unsplash.com/photo-1604908176997-125f25cc5c4a",
+sizes:{ "liters":0 }
+},
+
+/* =========================
+JAM
+========================= */
+
+{
+name:"Blueberry Jam",
+category:"Jam",
+image:"https://images.unsplash.com/photo-1604908176997-125f25cc5c4a",
+sizes:{ "jar":310 }
+},
+
+{
+name:"Mango Jam",
+category:"Jam",
+image:"https://images.unsplash.com/photo-1625944525415-2b7f8c2a9b8e",
+sizes:{ "jar":310 }
+},
+
+{
+name:"Strawberry Jam",
+category:"Jam",
+image:"https://images.unsplash.com/photo-1604908554027-6a7f8c3a7b7f",
+sizes:{ "jar":310 }
+},
+
+/* =========================
+BISCO
+========================= */
+{
+name:"Bisco Spread",
+category:"Bisco",
+image:"https://images.unsplash.com/photo-1606788075761-8c1b5c2f3b0f",
+sizes:{ "jar":320 }
+},
+{
+name:"Bisco Powder",
+category:"Bisco",
+image:"https://images.unsplash.com/photo-1606788075761-8c1b5c2f3b0f",
+sizes:{ "jar":275 }
+},
+
+/* =========================
+TEA LEAVES
+========================= */
+
+{
+name:"Tea Leaves",
+category:"Tea Leaves",
+image:"https://images.unsplash.com/photo-1604908176997-125f25cc5c4a",
+sizes:{ "pack":0 }
+},
+
+/* =========================
+SUPPLIES
+========================= */
+
+{
+name:"8 oz Cup",
+category:"Supplies",
+image:"https://images.unsplash.com/photo-1517701604599-bb29b565090c?q=80&w=1200&auto=format&fit=crop",
+sizes:{ "Pieces":0 }
+},
+
+{
+name:"16 oz Cup",
+category:"Supplies",
+image:"https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=1200&auto=format&fit=crop",
+sizes:{ "pieces":0 }
+},
+
+{
+name:"22 oz Cup",
+category:"Supplies",
+image:"https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=1200&auto=format&fit=crop",
+sizes:{ "pieces":0 }
+},
+
+{
+name:"Boba Straw",
+category:"Supplies",
+image:"https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=1200&auto=format&fit=crop",
+sizes:{ "pieces":0 }
+},
+
+{
+name:"Coffee Lids",
+category:"Supplies",
+image:"https://images.unsplash.com/photo-1511920170033-f8396924c348?q=80&w=1200&auto=format&fit=crop",
+sizes:{ "pieces":0 }
+},
+
+{
+name:"Coffee Straw",
+category:"Supplies",
+image:"https://images.unsplash.com/photo-1517701604599-bb29b565090c?q=80&w=1200&auto=format&fit=crop",
+sizes:{ "pieces":0 }
+},
+
+{
+name:"Dome Lids",
+category:"Supplies",
+image:"https://images.unsplash.com/photo-1579954115545-a95591f28bfc?q=80&w=1200&auto=format&fit=crop",
+sizes:{ "pieces":0 }
+},
+
+{
+name:"Flat Lids",
+category:"Supplies",
+image:"https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=1200&auto=format&fit=crop",
+sizes:{ "pieces":0 }
+},
+
+{
+name:"Hot Coffee Cup",
+category:"Supplies",
+image:"https://images.unsplash.com/photo-1511920170033-f8396924c348?q=80&w=1200&auto=format&fit=crop",
+sizes:{ "pieces":0 }
+},
+
+{
+name:"Single Plastic Bag",
+category:"Supplies",
+image:"https://images.unsplash.com/photo-1583251633146-d0c6c36f0b0e?q=80&w=1200&auto=format&fit=crop",
+sizes:{ "packs":0 }
+},
+
+{
+name:"Double Plastic Bag",
+category:"Supplies",
+image:"https://images.unsplash.com/photo-1583251633146-d0c6c36f0b0e?q=80&w=1200&auto=format&fit=crop",
+sizes:{ "packs":0 }
+},
+
+{
+name:"Tissue",
+category:"Supplies",
+image:"https://images.unsplash.com/photo-1583947582886-f40ec95dd752?q=80&w=1200&auto=format&fit=crop",
+sizes:{ "packs":0 }
+},
+
+
+
+
+];
+
+/* =========================
+LOCAL STORAGE
+========================= */
+
+const STORAGE_KEY = "juan_inventory_system";
+
+/* ALWAYS REBUILD INVENTORY FROM PRODUCTS */
+
+let inventory = products.flatMap(product =>
+
+Object.entries(product.sizes).map(([size,price]) => ({
+
+name: product.name,
+category: product.category,
+image: product.image,
+size: size,
+price: price,
+stocks: 0
+
+}))
+
+);
+
+/* LOAD OLD STOCKS IF AVAILABLE */
+
+const savedInventory =
+JSON.parse(localStorage.getItem(STORAGE_KEY));
+
+if(savedInventory){
+
+inventory.forEach(item => {
+
+const old = savedInventory.find(saved =>
+
+saved.name === item.name &&
+saved.size === item.size
+
+);
+
+if(old){
+item.stocks = old.stocks;
+}
+
+});
+
+}
+
+saveStorage();
+function saveStorage(){
+
+localStorage.setItem(
+STORAGE_KEY,
+JSON.stringify(inventory)
+);
+
+}
+
+/* =========================
+ELEMENTS
+========================= */
+
+const table = document.getElementById("table");
+
+const totalProducts = document.getElementById("totalProducts");
+const totalUnits = document.getElementById("totalUnits");
+const lowStocks = document.getElementById("lowStocks");
+const inventoryValue = document.getElementById("inventoryValue");
+
+const modal = document.getElementById("modal");
+
+let editIndex = null;
+
+/* =========================
+CATEGORY FILTER
+========================= */
+
+const categories = [...new Set(products.map(p=>p.category))];
+
+const filter = document.getElementById("filter");
+
+categories.forEach(cat=>{
+
+filter.innerHTML += `
+<option value="${cat}">
+${cat}
+</option>
+`;
+
+});
+
+/* =========================
+RENDER
+========================= */
+
+function render(){
+
+saveStorage();
+
+table.innerHTML = "";
+
+let totalUnitsCount = 0;
+let totalValue = 0;
+let low = 0;
+
+const search = document
+.getElementById("search")
+.value
+.toLowerCase();
+
+const selected = filter.value;
+
+inventory.forEach((item,index)=>{
+
+const matchesSearch =
+item.name.toLowerCase().includes(search);
+
+const matchesFilter =
+selected === "All" ||
+item.category === selected;
+
+if(matchesSearch && matchesFilter){
+
+totalUnitsCount += item.stocks;
+totalValue += item.stocks * item.price;
+
+if(item.stocks < 5){
+low++;
+}
+
+table.innerHTML += `
+<tr>
+
+<td>
+<img src="${item.image}">
+</td>
+
+<td>${item.name}</td>
+
+<td>${item.category}</td>
+
+<td>${item.size}</td>
+
+<td>₱${item.price}</td>
+
+<td>${item.stocks}</td>
+
+<td class="${item.stocks < 5 ? 'low':'good'}">
+${item.stocks === 0 ? 'OUT OF STOCK' : item.stocks < 5 ? 'LOW' : 'OK'}</td>
+
+<td>
+<button
+class="action-btn edit"
+onclick="editItem(${index})"
+>
+Edit
+</button>
+</td>
+
+</tr>
+`;
+
+}
+
+});
+
+totalProducts.innerText = inventory.length;
+totalUnits.innerText = totalUnitsCount;
+lowStocks.innerText = low;
+inventoryValue.innerText = "₱" + totalValue;
+
+updateChart();
+
+}
+
+/* =========================
+EDIT
+========================= */
+
+function editItem(index){
+
+editIndex = index;
+
+const item = inventory[index];
+
+modal.style.display = "flex";
+
+document.getElementById("e_name").value = item.name;
+document.getElementById("e_category").value = item.category;
+document.getElementById("e_size").value = item.size;
+document.getElementById("e_price").value = item.price;
+document.getElementById("e_stocks").value = item.stocks;
+
+}
+
+function saveEdit(){
+
+inventory[editIndex].stocks =
+Number(document.getElementById("e_stocks").value);
+
+saveStorage();
+
+closeModal();
+
+render();
+
+}
+
+function closeModal(){
+
+modal.style.display = "none";
+
+}
+
+/* =========================
+CHART
+========================= */
+
+let chart;
+
+function updateChart(){
+
+const categoryData = {};
+
+inventory.forEach(item=>{
+
+categoryData[item.category] =
+(categoryData[item.category] || 0)
++ item.stocks;
+
+});
+
+if(chart){
+chart.destroy();
+}
+
+chart = new Chart(
+document.getElementById("chart"),
+{
+type:"bar",
+
+data:{
+labels:Object.keys(categoryData),
+
+datasets:[{
+label:"Stocks",
+data:Object.values(categoryData),
+backgroundColor:"#8b4f32"
+}]
+},
+
+options:{
+responsive:true,
+plugins:{
+legend:{
+display:false
+}
+}
+}
+
+});
+
+}
+
+/* =========================
+SEARCH + FILTER
+========================= */
+
+document
+.getElementById("search")
+.addEventListener("input",render);
+
+filter.addEventListener("change",render);
+
+/* =========================
+EXPORT
+========================= */
+function exportExcel(){
+const now = new Date();
+const exportedAt = now.toLocaleString();
+const exportData = inventory.map(item => ({
+Product: item.name,
+Category: item.category,
+Size: item.size,
+Price: item.price,
+Stocks: item.stocks,
+Status: item.stocks < 5 ? "LOW" : "OK",
+"Date": exportedAt   
+
+}));
+
+const ws = XLSX.utils.json_to_sheet(exportData);
+const wb = XLSX.utils.book_new();
+
+XLSX.utils.book_append_sheet(wb, ws, "Inventory");
+
+XLSX.writeFile(wb, "juan_inventory.xlsx");
+
+}
+
+function exportJSON(){
+
+const data =
+"data:text/json;charset=utf-8," +
+encodeURIComponent(
+JSON.stringify(inventory,null,2)
+);
+
+const a = document.createElement("a");
+
+a.href = data;
+
+a.download = "juan_inventory.json";
+
+a.click();
+
+}
+
+/* =========================
+RESET
+========================= */
+
+function resetInventory(){
+
+if(confirm("Reset all stocks to 0?")){
+
+inventory.forEach(item=>{
+item.stocks = 0;
+});
+
+saveStorage();
+
+render();
+
+}
+
+}
+
+/* =========================
+CLOSE MODAL CLICK OUTSIDE
+========================= */
+
+window.onclick = function(e){
+
+if(e.target === modal){
+closeModal();
+}
+
+}
+
+/* =========================
+INIT
+========================= */
+
+render();
+
+</script>
+
+</body>
+</html>
